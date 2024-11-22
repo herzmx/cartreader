@@ -1014,49 +1014,6 @@ void blankcheckSIMM16() {
   }
 }
 
-// From readFlash
-void readSIMM2x8() {
-  // Reset to root directory
-  sd.chdir("/");
-
-  createFolderAndOpenFile("CPS3", "SIMM", "128M", "bin");
-
-  //Initialize progress bar
-  uint32_t processedProgressBar = 0;
-  uint32_t totalProgressBar = flashSize;
-  draw_progressbar(0, totalProgressBar);
-
-  word d = 0;
-  unsigned long simmAddress = 0;
-  char tmpWord[5];
-  char tmpDWord[9];
-  for (unsigned long currByte = 0; currByte < flashSize / 2; currByte += 256) {
-    for (word c = 0; c < 256; c++) {
-      simmAddress = currByte + c;
-      word currWord = readWord_Flash(simmAddress);
-      // Split word into two bytes
-      // Right
-      sdBuffer[d + 1] = ((currWord >> 8) & 0xFF);
-      // Left
-      sdBuffer[d] = (currWord & 0xFF);
-      d += 2;
-    }
-    myFile.write(sdBuffer, 512);
-    d = 0;
-    // Update progress bar
-    processedProgressBar += 512;
-    draw_progressbar(processedProgressBar, totalProgressBar);
-    // Blink led
-    if (currByte % 25600 == 0)
-      blinkLED();
-  }
-
-  // Close the file:
-  myFile.close();
-  println_Msg(F("Finished reading"));
-  display_Update();
-}
-
 // From readFlash16
 void readSIMM16() {
   // Reset to root directory
