@@ -85,12 +85,16 @@ void cpsMenu() {
       display_Update();
       mode = CORE_CPS3_01SIMM;
       setup_CPS3();
+      id_SIMM16();
+      wait();
       break;
     case 4:
       display_Clear();
       display_Update();
       mode = CORE_CPS3_512SIMM;
       setup_CPS3();
+      id_SIMM2x16();
+      wait();
       break;
     case 5:
       resetArduino();
@@ -293,7 +297,7 @@ void flashromCPS_SIMM2x8() {
       display_Update();
       time = millis();
       resetSIMM2x8();
-      blankcheckSIMM2x8();
+      blankcheckSIMM16();
       break;
 
     case 1:
@@ -327,7 +331,7 @@ void flashromCPS_SIMM2x8() {
     case 2:
       time = millis();
       resetSIMM2x8();
-      readSIMM2x8B();
+      readSIMM16();
       break;
 
     case 3:
@@ -356,7 +360,7 @@ void flashromCPS_SIMM2x8() {
         resetSIMM2x8();
         resetSIMM2x8();
 
-        verifySIMM2x8();
+        verifySIMM16();
       } else {
         readOnlyMode();
       }
@@ -409,7 +413,7 @@ void flashromCPS_SIMM2x8() {
   wait();
 }
 
-// CPS3 32/128 SIMM menu
+// CPS3 64 SIMM menu
 void flashromCPS_SIMM4x8() {
   // create menu with title and 7 options to choose from
   unsigned char mainMenu;
@@ -425,7 +429,7 @@ void flashromCPS_SIMM4x8() {
       display_Update();
       time = millis();
       resetSIMM4x8();
-      blankcheckSIMM4x8();
+      blankcheckSIMM2x16();
       break;
 
     case 1:
@@ -459,7 +463,7 @@ void flashromCPS_SIMM4x8() {
     case 2:
       time = millis();
       resetSIMM4x8();
-      readSIMM4x8();
+      readSIMM2x16();
       break;
 
     case 3:
@@ -488,7 +492,7 @@ void flashromCPS_SIMM4x8() {
         resetSIMM4x8();
         resetSIMM4x8();
 
-        verifySIMM4x8();
+        verifySIMM2x16();
       } else {
         readOnlyMode();
       }
@@ -954,7 +958,7 @@ void resetSIMM2x8() {
   resetFlash2x8(0x0);
 }
 
-void blankcheckSIMM2x8() {
+void blankcheckSIMM16() {
 
   //Initialize progress bar
   uint32_t processedProgressBar = 0;
@@ -1046,7 +1050,7 @@ void readSIMM2x8() {
 }
 
 // From readFlash16
-void readSIMM2x8B() {
+void readSIMM16() {
   // Reset to root directory
   sd.chdir("/");
 
@@ -1144,7 +1148,7 @@ void writeSIMM2x8() {
 }
 
 // From verifyFlash16
-void verifySIMM2x8() {
+void verifySIMM16() {
   if (openVerifyFlashFile()) {
     blank = 0;
     word d = 0;
@@ -1264,7 +1268,7 @@ void resetSIMM4x8() {
   resetFlash2x8(0x0);
 }
 
-void blankcheckSIMM4x8() {
+void blankcheckSIMM2x16() {
 
   //Initialize progress bar
   uint32_t processedProgressBar = 0;
@@ -1325,7 +1329,7 @@ void eraseSIMM4x8() {
 }
 
 // From readFlash16
-void readSIMM4x8() {
+void readSIMM2x16() {
   // Reset to root directory
   sd.chdir("/");
 
@@ -1423,7 +1427,7 @@ void writeSIMM4x8() {
   }
 }
 
-void verifySIMM4x8() {
+void verifySIMM2x16() {
   if (openVerifyFlashFile()) {
     blank = 0;
     word d = 0;
