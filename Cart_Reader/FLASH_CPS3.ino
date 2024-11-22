@@ -887,11 +887,11 @@ void id_SIMM2x8() {
   uint8_t ngFlash = 0;
   uint8_t okFlash = 0;
 
-  if (flashids[6] == flashids[7]) {
-    flashid = flashids[7];
+  if (flashids[0] == flashids[1]) {
+    flashid = flashids[0];
     sprintf(flashid_str, "%04X", flashid);
     okFlash = 2;
-    for (byte i = 0; i < 6; i++) {
+    for (byte i = 2; i < 8; i++) {
       if (flashid == flashids[i])
         okFlash += 1;
       else
@@ -1204,15 +1204,15 @@ void id_SIMM4x8() {
   resetSIMM4x8();
   uint8_t ngFlash = 0;
   uint8_t okFlash = 0;
-  
-  flashid = flashids[7];
-  sprintf(flashid_str, "%04X", flashid);
-  for (byte i = 4; i < 8; i++) {
+
+  flashid = flashids[0];
+  for (byte i = 0; i < 4; i++) {
     if (flashid == flashids[i])
       okFlash += 1;
     else
       ngFlash += 1;
   }
+  sprintf(flashid_str, "%04X", flashid);
 
   // Print start screen
   display_Clear();
