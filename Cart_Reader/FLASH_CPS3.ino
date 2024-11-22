@@ -506,16 +506,14 @@ void flashromCPS_SIMM4x8() {
       switch (flashromType) {
         case 0: break;
         case 1: 
-            enable64MSB();
+            enable64MLSB();
             idFlash2x8(0x0);
-            enable64LSB();
-            idFlash2x8(0x1);
           break;
         case 2: break;
         case 3: break;
       }
       println_Msg(FS(FSTRING_EMPTY));
-      printSIMM4x8(40);
+      printSIMM2x16(40);
       println_Msg(FS(FSTRING_EMPTY));
       display_Update();
       resetSIMM4x8();
@@ -528,7 +526,7 @@ void flashromCPS_SIMM4x8() {
       display_Update();
       resetSIMM4x8();
       enable64MSB();
-      printSIMM4x8(70);
+      printSIMM2x16(70);
       break;
 
     case 6:
@@ -607,6 +605,16 @@ void setup_CPS3() {
 /******************************************
    Low level functions
  *****************************************/
+void enable64MLSB() {
+  // Setting CE64LSB(PE3) LOW
+  PORTE &= ~(1 << 3);
+  // Setting CE64MSB(PG5) LOW
+  PORTG &= ~(1 << 5);
+  // Wait till output is stable
+  NOP;
+  NOP;
+}
+
 void enable64MSB() {
   // Setting CE64LSB(PE3) HIGH
   PORTE |= (1 << 3);
@@ -1386,6 +1394,7 @@ void writeSIMM4x8() {
     draw_progressbar(0, totalProgressBar);
 
     // Fill sdBuffer
+    unsigned long simmAddress = 0;
     for (unsigned long currByte = 0; currByte < fileSize / 4; currByte += 128) {
       myFile.read(sdBuffer, 512);
       // Blink led
@@ -1394,24 +1403,33 @@ void writeSIMM4x8() {
       
       noInterrupts();
       for (int c = 0; c < 128; c++) {
+        simmAddress = currByte + c;
         // 0600 0EA0
         enable64MSB();
         // 0006
-        word myWord = ((sdBuffer[(c * 4) + 1] & 0xFF) << 8) | (sdBuffer[(c * 4)] & 0xFF);
-        // Write command sequence
-        writeByteCommand_Flash2x8(0x0, 0xa0);
-        // Write current word
-        writeWord_Flash(currByte + c, myWord);
-        busyCheck2x8(currByte + c, myWord);
-
+        word myWordMSB = ((sdBuffer[(c * 4) + 1] & 0xFF) << 8) | (sdBuffer[(c * 4)] & 0xFF);
+        dataIn16();
+        word wordFlashMSB = readWord_Flash(simmAddress);
+        dataOut16();
+        if (wordFlashMSB != myWordMSB && myWordMSB != 0xFFFF) {
+          // Write command sequence
+          writeByteCommand_Flash2x8(0x0, 0xa0);
+          // Write current word
+          writeWord_Flash(simmAddress, myWordMSB);
+          busyCheck2x8(simmAddress, myWordMSB);
+        }
         enable64LSB();
-        // A00E
-        myWord = ((sdBuffer[(c * 4) + 3] & 0xFF) << 8) | (sdBuffer[(c * 4) + 2] & 0xFF);
-        // Write command sequence
-        writeByteCommand_Flash2x8(0x0, 0xa0);
-        // Write current word
-        writeWord_Flash(currByte + c, myWord);
-        busyCheck2x8(currByte + c, myWord);
+        word myWordLSB = ((sdBuffer[(c * 4) + 3] & 0xFF) << 8) | (sdBuffer[(c * 4) + 2] & 0xFF);
+        dataIn16();
+        word wordFlashLSB = readWord_Flash(simmAddress);
+        dataOut16();
+        if (wordFlashLSB != myWordLSB && myWordLSB != 0xFFFF) {
+          // Write command sequence
+          writeByteCommand_Flash2x8(0x0, 0xa0);
+          // Write current word
+          writeWord_Flash(simmAddress, myWordLSB);
+          busyCheck2x8(simmAddress, myWordLSB);
+        }
       }
       interrupts();
       // update progress bar
@@ -1477,7 +1495,7 @@ void verifySIMM2x16() {
   }
 }
 
-void printSIMM4x8(int numBytes) {
+void printSIMM2x16(int numBytes) {
   /*
     right_byte = short_val & 0xFF;
     left_byte = ( short_val >> 8 ) & 0xFF
@@ -1486,35 +1504,20 @@ void printSIMM4x8(int numBytes) {
 
   char buf[3];
 
-  for (int currByte = 0; currByte < numBytes / 4; currByte += 4) {
-    // 2 dwords per line
-    for (int c = 0; c < 2; c++) {
-      enable64MSB();
-      word currWord = readWord_Flash(currByte + c);
+  for (int currByte = 0; currByte <= ceil(numBytes / 4); currByte += 1) {
+    enable64MSB();
+    word currWord = readWord_Flash(currByte);
+    sdBuffer[(currByte * 4)] = currWord & 0xFF;
+    sdBuffer[(currByte * 4) + 1] = (currWord >> 8) & 0xFF;
+    enable64LSB();
+    currWord = readWord_Flash(currByte);
+    sdBuffer[(currByte * 4) + 2] = currWord & 0xFF;
+    sdBuffer[(currByte * 4) + 3] = (currWord >> 8) & 0xFF;
+  }
 
-      // Split word into two bytes
-      byte left_byte = currWord & 0xFF;
-      byte right_byte = (currWord >> 8) & 0xFF;
-
-      sprintf(buf, "%.2X", left_byte);
-      // Now print the significant bits
-      print_Msg(buf);
-
-      sprintf(buf, "%.2X", right_byte);
-      // Now print the significant bits
-      print_Msg(buf);
-      enable64LSB();
-      currWord = readWord_Flash(currByte + c);
-
-      // Split word into two bytes
-      left_byte = currWord & 0xFF;
-      right_byte = (currWord >> 8) & 0xFF;
-
-      sprintf(buf, "%.2X", left_byte);
-      // Now print the significant bits
-      print_Msg(buf);
-
-      sprintf(buf, "%.2X", right_byte);
+  for (int currByte = 0; currByte < numBytes; currByte += 10) {
+    for (int c = 0; c < 10; c++) {
+      sprintf(buf, "%.2X", sdBuffer[currByte + c]);
       // Now print the significant bits
       print_Msg(buf);
     }
