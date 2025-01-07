@@ -3844,8 +3844,10 @@ void loop() {
 #endif
 #if (defined(ENABLE_CPS3) && defined(ENABLE_FLASH8) && defined(ENABLE_FLASH16)) 
     case CORE_CPS3_CART: return flashromCPS_Cartridge();
-    case CORE_CPS3_128SIMM: return flashromCPS_SIMM2x8();
-    case CORE_CPS3_64SIMM: return flashromCPS_SIMM4x8();
+    case CORE_CPS3_128SIMM: return flashromCPS_SIMM16();
+    case CORE_CPS3_64SIMM: return flashromCPS_SIMM2x16();
+    case CORE_CPS3_01SIMM: return flashromCPS_SIMM16();
+    case CORE_CPS3_512SIMM: return flashromCPS_SIMM2x16();
 #endif
     case CORE_MAX: return resetArduino();
   }

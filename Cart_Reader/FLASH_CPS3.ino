@@ -281,13 +281,13 @@ void cpsCartCDMenu() {
   }
 }
 
-// CPS3 32/128 SIMM menu
-void flashromCPS_SIMM2x8() {
+// CPS3 32/128MB SIMM menu
+void flashromCPS_SIMM16() {
   // create menu with title and 7 options to choose from
   unsigned char mainMenu;
   // Copy menuOptions out of progmem
   convertPgm(menuOptionsFLASH8, 7);
-  mainMenu = question_box(F("CPS3 SIMM Writer 2x8bit"), menuOptions, 7, 0);
+  mainMenu = question_box(F("CPS3 SIMM 32/128 Writer"), menuOptions, 7, 0);
 
   // wait for user choice to come back from the question box menu
   switch (mainMenu) {
@@ -296,7 +296,7 @@ void flashromCPS_SIMM2x8() {
       println_Msg(F("Blankcheck"));
       display_Update();
       time = millis();
-      resetSIMM2x8();
+      resetSIMM16();
       blankcheckSIMM16();
       break;
 
@@ -304,7 +304,7 @@ void flashromCPS_SIMM2x8() {
       if (flashromType != 0) {
         display_Clear();
         println_Msg(F("Warning: This will erase"));
-        println_Msg(F("your CPS3 SIMM 2x8bit"));
+        println_Msg(F("your CPS3 SIMM 32/128"));
         print_STR(press_button_STR, 1);
         display_Update();
         wait();
@@ -315,14 +315,20 @@ void flashromCPS_SIMM2x8() {
         time = millis();
 
         switch (flashromType) {
-          case 1: eraseSIMM2x8(); break;
-          case 2: break;
-          case 3: break;
+          case 1:
+            if (flashid == 0x04AD)
+              eraseSIMM2x8();
+            break;
+          case 2:
+            if (flashid == 0x017E || flashid == 0x897E)
+              eraseFlash16();
+            break;
+          case 3:
+            break;
         }
-
-        println_Msg(F("CPS3 SIMM 2x8bit erased"));
+        println_Msg(F("CPS3 SIMM 32/128 erased"));
         display_Update();
-        resetSIMM2x8();
+        resetSIMM16();
       } else {
         readOnlyMode();
       }
@@ -330,7 +336,7 @@ void flashromCPS_SIMM2x8() {
 
     case 2:
       time = millis();
-      resetSIMM2x8();
+      resetSIMM16();
       readSIMM16();
       break;
 
@@ -349,6 +355,8 @@ void flashromCPS_SIMM2x8() {
               writeSIMM2x8();
             break;
           case 2:
+            if (flashid == 0x017E || flashid == 0x897E)
+              writeSIMM16(sectorSize, bufferSize);
             break;
           case 3:
             break;
@@ -357,8 +365,8 @@ void flashromCPS_SIMM2x8() {
         delay(100);
 
         // Reset twice just to be sure
-        resetSIMM2x8();
-        resetSIMM2x8();
+        resetSIMM16();
+        resetSIMM16();
 
         verifySIMM16();
       } else {
@@ -369,19 +377,25 @@ void flashromCPS_SIMM2x8() {
     case 4:
       time = 0;
       display_Clear();
-      resetFlash8();
+      resetSIMM16();
       println_Msg(F("ID Flashrom"));
       switch (flashromType) {
-        case 0: break;
-        case 1: idFlash2x8(0x0); break;
-        case 2: break;
-        case 3: break;
+        case 1:
+          if (flashid == 0x04AD)
+            idFlash2x8(0x0);
+          break;
+        case 2:
+          if (flashid == 0x017E || flashid == 0x897E)
+            idFlash16();
+          break;
+        case 3:
+          break;
       }
       println_Msg(FS(FSTRING_EMPTY));
       printFlash16(40);
       println_Msg(FS(FSTRING_EMPTY));
       display_Update();
-      resetSIMM2x8();
+      resetSIMM16();
       break;
 
     case 5:
@@ -389,7 +403,7 @@ void flashromCPS_SIMM2x8() {
       display_Clear();
       println_Msg(F("Print first 70Bytes"));
       display_Update();
-      resetSIMM2x8();
+      resetSIMM16();
       printFlash16(70);
       break;
 
@@ -397,7 +411,7 @@ void flashromCPS_SIMM2x8() {
       time = 0;
       display_Clear();
       display_Update();
-      resetSIMM2x8();
+      resetSIMM16();
       resetArduino();
       break;
   }
@@ -413,13 +427,13 @@ void flashromCPS_SIMM2x8() {
   wait();
 }
 
-// CPS3 64 SIMM menu
-void flashromCPS_SIMM4x8() {
+// CPS3 64MB SIMM menu
+void flashromCPS_SIMM2x16() {
   // create menu with title and 7 options to choose from
   unsigned char mainMenu;
   // Copy menuOptions out of progmem
   convertPgm(menuOptionsFLASH8, 7);
-  mainMenu = question_box(F("CPS3 SIMM Writer 4x8bit"), menuOptions, 7, 0);
+  mainMenu = question_box(F("CPS3 SIMM 64 Writer"), menuOptions, 7, 0);
 
   // wait for user choice to come back from the question box menu
   switch (mainMenu) {
@@ -428,7 +442,7 @@ void flashromCPS_SIMM4x8() {
       println_Msg(F("Blankcheck"));
       display_Update();
       time = millis();
-      resetSIMM4x8();
+      resetSIMM2x16();
       blankcheckSIMM2x16();
       break;
 
@@ -436,7 +450,7 @@ void flashromCPS_SIMM4x8() {
       if (flashromType != 0) {
         display_Clear();
         println_Msg(F("Warning: This will erase"));
-        println_Msg(F("your CPS3 SIMM 4x8bit"));
+        println_Msg(F("your CPS3 SIMM 64"));
         print_STR(press_button_STR, 1);
         display_Update();
         wait();
@@ -447,14 +461,21 @@ void flashromCPS_SIMM4x8() {
         time = millis();
 
         switch (flashromType) {
-          case 1: eraseSIMM4x8(); break;
-          case 2: break;
-          case 3: break;
+          case 1:
+            if (flashid == 0x04AD)
+              eraseSIMM4x8();
+            break;
+          case 2:
+            if (flashid == 0x017E || flashid == 0x897E)
+              eraseSIMM2x16();
+            break;
+          case 3:
+            break;
         }
 
-        println_Msg(F("CPS3 SIMM 4x8bit erased"));
+        println_Msg(F("CPS3 SIMM 64 erased"));
         display_Update();
-        resetSIMM4x8();
+        resetSIMM2x16();
       } else {
         readOnlyMode();
       }
@@ -462,7 +483,7 @@ void flashromCPS_SIMM4x8() {
 
     case 2:
       time = millis();
-      resetSIMM4x8();
+      resetSIMM2x16();
       readSIMM2x16();
       break;
 
@@ -481,6 +502,8 @@ void flashromCPS_SIMM4x8() {
               writeSIMM4x8();
             break;
           case 2:
+            if (flashid == 0x017E || flashid == 0x897E)
+              writeSIMM2x16(sectorSize, bufferSize);
             break;
           case 3:
             break;
@@ -489,8 +512,8 @@ void flashromCPS_SIMM4x8() {
         delay(100);
 
         // Reset twice just to be sure
-        resetSIMM4x8();
-        resetSIMM4x8();
+        resetSIMM2x16();
+        resetSIMM2x16();
 
         verifySIMM2x16();
       } else {
@@ -503,20 +526,24 @@ void flashromCPS_SIMM4x8() {
       display_Clear();
       resetFlash8();
       println_Msg(F("ID Flashrom"));
+      enable64MLSB();
       switch (flashromType) {
-        case 0: break;
-        case 1: 
-            enable64MLSB();
+        case 1:
+          if (flashid == 0x04AD)
             idFlash2x8(0x0);
           break;
-        case 2: break;
-        case 3: break;
+        case 2:
+          if (flashid == 0x017E || flashid == 0x897E)
+            idSIMM16();
+          break;
+        case 3:
+          break;
       }
       println_Msg(FS(FSTRING_EMPTY));
       printSIMM2x16(40);
       println_Msg(FS(FSTRING_EMPTY));
       display_Update();
-      resetSIMM4x8();
+      resetSIMM2x16();
       break;
 
     case 5:
@@ -524,8 +551,7 @@ void flashromCPS_SIMM4x8() {
       display_Clear();
       println_Msg(F("Print first 70Bytes"));
       display_Update();
-      resetSIMM4x8();
-      enable64MSB();
+      resetSIMM2x16();
       printSIMM2x16(70);
       break;
 
@@ -533,7 +559,7 @@ void flashromCPS_SIMM4x8() {
       time = 0;
       display_Clear();
       display_Update();
-      resetSIMM4x8();
+      resetSIMM2x16();
       resetArduino();
       break;
   }
@@ -578,6 +604,9 @@ void setup_CPS3() {
   PORTC = 0x00;
   PORTA = 0x00;
 
+  // Setting A24(PJ0), A25(PJ1) LOW
+  setA24A25(0);
+
   // Setting RST(PH0) OE(PH1) WE(PH4) CKIO_CPU(PH5) HIGH
   PORTH |= (1 << 0) | (1 << 1) | (1 << 4) | (1 << 5);
   // Setting CE64LSB(PE3) CE128(PE4) HIGH
@@ -605,6 +634,31 @@ void setup_CPS3() {
 /******************************************
    Low level functions
  *****************************************/
+void setA24A25(unsigned long myAddress) {
+  switch ((myAddress >> 24) & 0xFF) {
+    case 0x0:
+      // Setting A24(PJ0), A25(PJ1) LOW
+      PORTJ &= ~((1 << 0) | (1 << 1));
+      break;
+    case 0x1:
+      // Setting A24(PJ0) HIGH
+      PORTJ |= (1 << 0);
+      // Setting A25(PJ0) LOW
+      PORTJ &= ~(1 << 1);
+      break;
+    case 0x2:
+      // Setting A24(PJ0) LOW
+      PORTJ &= ~(1 << 0);
+      // Setting A25(PJ0) HIGH
+      PORTJ |= (1 << 1);
+      break;
+    case 0x3:
+      // Setting A24(PJ0), A25(PJ1) HIGH
+      PORTJ |= (1 << 0) | (1 << 1);
+      break;
+  }
+}
+
 void enable64MLSB() {
   // Setting CE64LSB(PE3) LOW
   PORTE &= ~(1 << 3);
@@ -633,6 +687,33 @@ void enable64LSB() {
   // Wait till output is stable
   NOP;
   NOP;
+}
+
+byte readByte_SIMM(unsigned long myAddress) {
+  // A0-A7
+  PORTF = myAddress & 0xFF;
+  // A8-A15
+  PORTK = (myAddress >> 8) & 0xFF;
+  // A16-A23
+  PORTL = (myAddress >> 16) & 0xFF;
+
+  // Arduino running at 16Mhz -> one nop = 62.5ns
+  NOP;
+
+  // Setting OE(PH1)
+  PORTH &= ~(1 << 1);
+
+  NOP;
+  NOP;
+
+  // Read
+  byte tempByte = PINC;
+
+  PORTH |= (1 << 1);
+  NOP;
+  
+
+  return tempByte;
 }
 
 /******************************************
@@ -1004,7 +1085,10 @@ void blankcheckSIMM16() {
     // Blink led
     if (currBuffer % 25600 == 0)
       blinkLED();
+    if (processedProgressBar % 0x2000000 == 0)
+      setA24A25(simmAddress + 1);
   }
+  setA24A25(0);
   if (blank) {
     println_Msg(F("SIMM is empty"));
     display_Update();
@@ -1047,7 +1131,10 @@ void readSIMM16() {
     // Blink led
     if (currByte % 25600 == 0)
       blinkLED();
+    if (processedProgressBar % 0x2000000 == 0)
+      setA24A25(simmAddress + 1);
   }
+  setA24A25(0);
 
   // Close the file:
   myFile.close();
@@ -1136,14 +1223,15 @@ void verifySIMM16() {
       }
       d = 0;
       // Update progress bar
-      if (currByte % 256 == 0) {
-        processedProgressBar += 512;
-        draw_progressbar(processedProgressBar, totalProgressBar);
-      }
+      processedProgressBar += 512;
+      if (processedProgressBar % 0x2000000 == 0)
+        setA24A25(simmAddress + 1);
+      draw_progressbar(processedProgressBar, totalProgressBar);
       // Blink led
       if (currByte % 25600 == 0)
         blinkLED();
     }
+    setA24A25(0);
     if (blank == 0) {
       println_Msg(F("SIMM verified OK"));
       display_Update();
@@ -1484,6 +1572,352 @@ void printSIMM2x16(int numBytes) {
 }
 
 /******************************************
+  16bit SIMM functions
+*****************************************/
+void id_SIMM16() {
+  idFlash16();
+  resetFlash16();
+
+  // Print start screen
+  display_Clear();
+  display_Update();
+  println_Msg(F("SIMM Writer 16bit"));
+  println_Msg("");
+  println_Msg("");
+  print_Msg(F("Flash ID: "));
+  println_Msg(flashid_str);
+  if (flashid == 0x017E) {
+    idFlash16();
+    if (readWord_Flash(0xE) == 0x2228) {
+      println_Msg(F("S29GL01 detected"));
+      flashSize = 0x8000000;
+    }
+    else if (readWord_Flash(0xE) == 0x2223) {
+      println_Msg(F("S29GL512 detected"));
+      flashSize = 0x4000000;
+    }
+    else if (readWord_Flash(0xE) == 0x2222) {
+      println_Msg(F("S29GL256 detected"));
+      flashSize = 0x2000000;
+    }
+    else if (readWord_Flash(0xE) == 0x2221) {
+      println_Msg(F("S29GL128 detected"));
+      flashSize = 0x1000000;
+    }
+    // 64KW
+    sectorSize = 65536;
+    // 256W = sdBuffer[512]
+    bufferSize = 256;
+    println_Msg(FS(ATTENTION_3_3V));
+    flashromType = 2;
+  } else if (flashid == 0x897E) {
+    idFlash16();
+    if (readWord_Flash(0xE) == 0x2228) {
+      println_Msg(F("MT28EW01G detected"));
+      flashSize = 0x8000000;
+      //flashSize = 0x1000000;
+    }
+    else if (readWord_Flash(0xE) == 0x2223) {
+      println_Msg(F("MT28EW512 detected"));
+      flashSize = 0x4000000;
+    }
+    else if (readWord_Flash(0xE) == 0x2222) {
+      println_Msg(F("MT28EW256 detected"));
+      flashSize = 0x2000000;
+    }
+    else if (readWord_Flash(0xE) == 0x2221) {
+      println_Msg(F("MT28EW128 detected"));
+      flashSize = 0x1000000;
+    }
+    // 64KW
+    sectorSize = 65536;
+    // 256W = sdBuffer[512]
+    bufferSize = 256;
+    println_Msg(FS(ATTENTION_3_3V));
+    flashromType = 2;
+  } else {
+    // ID not found
+    flashSize = 0x1000000;
+    flashromType = 0;
+    display_Clear();
+    println_Msg(F("SIMM Writer 16bit"));
+    println_Msg("");
+    print_Msg(F("ID Type 1: "));
+    println_Msg(vendorID);
+    print_Msg(F("ID Type 2: "));
+    println_Msg(flashid_str);
+    println_Msg("");
+    println_Msg(F("UNKNOWN FLASHROM"));
+    println_Msg("");
+    // Prints string out of the common strings array either with or without newline
+    print_Error(press_button_STR);
+    display_Update();
+    wait();
+    // print first 40 bytes of flash
+    display_Clear();
+    println_Msg(F("First 40 bytes:"));
+    println_Msg(FS(FSTRING_EMPTY));
+    printFlash16(40);
+    resetFlash16();
+  }
+  println_Msg(FS(FSTRING_EMPTY));
+  // Prints string out of the common strings array either with or without newline
+  print_STR(press_button_STR, 1);
+  display_Update();
+  resetFlash16();
+}
+
+void writeSIMM16(unsigned long sectorSize, uint16_t bufferSize) {
+  if (openFlashFile()) {
+    // Set data pins to output
+    dataOut16();
+
+    //Initialize progress bar
+    uint32_t processedProgressBar = 0;
+    uint32_t totalProgressBar = (uint32_t)fileSize / 2;
+    draw_progressbar(processedProgressBar, totalProgressBar);
+    for (unsigned long currSector = 0; currSector < fileSize / 2; currSector += sectorSize) {
+      // Write to flashrom
+      for (unsigned long currSdBuffer = 0; currSdBuffer < sectorSize; currSdBuffer += 256) {
+        // Fill SD buffer
+        myFile.read(sdBuffer, 512);
+        // Write bufferSize words at a time
+        for (int currWriteBuffer = 0; currWriteBuffer < 256; currWriteBuffer += bufferSize) {
+          noInterrupts();
+          // 2 unlock commands
+          writeWord_Flash(0x555, 0xaa);
+          writeWord_Flash(0x2aa, 0x55);
+          // Write buffer load command at sector address
+          writeWord_Flash(currSector + currSdBuffer + currWriteBuffer, 0x25);
+          // Write word count (minus 1) at sector address
+          writeWord_Flash(currSector + currSdBuffer + currWriteBuffer, bufferSize - 1);
+          // Load words into buffer
+          for (uint16_t currWord = 0; currWord < bufferSize; currWord++) {
+            writeWord_Flash(currSector + currSdBuffer + currWriteBuffer + currWord, ((sdBuffer[((currWriteBuffer + currWord) * 2) + 1] & 0xFF) << 8) | (sdBuffer[((currWriteBuffer + currWord) * 2)] & 0xFF));
+          }
+          // Write Buffer to Flash
+          writeWord_Flash(currSector + currSdBuffer + currWriteBuffer + bufferSize - 1, 0x29);
+          // Read the status register at last written address
+          dataIn16();
+          byte statusReg = readByte_Flash(currSector + currSdBuffer + currWriteBuffer + bufferSize - 1);
+          byte lastByte = sdBuffer[currWriteBuffer + (bufferSize * 2) - 2];
+          while ((statusReg & 0x80) != (lastByte & 0x80)) {
+            statusReg = readByte_Flash(currSector + currSdBuffer + currWriteBuffer + bufferSize - 1);
+          }
+          interrupts();
+          // update progress bar
+          processedProgressBar += bufferSize;
+          draw_progressbar(processedProgressBar, totalProgressBar);
+          // Blink led
+          if (processedProgressBar % 2048 == 0)
+            blinkLED();
+          if (processedProgressBar % 0x1000000 == 0)
+            setA24A25(currSector + currSdBuffer + currWriteBuffer + bufferSize + 1);
+
+          dataOut16();
+        }
+      }
+    }
+    setA24A25(0);
+    // Set data pins to input again
+    dataIn16();
+    // Close the file:
+    myFile.close();
+  }
+}
+
+/******************************************
+  2x16bit SIMM functions
+*****************************************/
+
+void id_SIMM2x16() {
+  enable64MSB();
+  idSIMM16();
+  flashids[0] = flashid;
+  enable64LSB();
+  idSIMM16();
+  flashids[1] = flashid;
+  resetSIMM2x16();
+
+  sprintf(flashid_str, "%04X", flashid);
+
+  // Print start screen
+  display_Clear();
+  display_Update();
+  println_Msg(F("SIMM Writer 2x16bit"));
+  println_Msg("");
+  println_Msg("");
+  print_Msg(F("Flash ID: "));
+  println_Msg(flashid_str);
+  if (flashid == 0x017E && flashids[0] == flashids[1]) {
+    idFlash16();
+    if (readWord_Flash(0xE) == 0x2228) {
+      println_Msg(F("S29GL01 detected"));
+      // flashSize = 0x8000000;
+      flashSize = 0x2000000;
+    }
+    else if (readWord_Flash(0xE) == 0x2223) {
+      println_Msg(F("S29GL512 detected"));
+      // flashSize = 0x4000000;
+      flashSize = 0x2000000;
+    }    else if (readWord_Flash(0xE) == 0x2222) {
+      println_Msg(F("S29GL256 detected"));
+      flashSize = 0x2000000;
+    }
+    else if (readWord_Flash(0xE) == 0x2221) {
+      println_Msg(F("S29GL128 detected"));
+      flashSize = 0x1000000;
+    }
+    flashSize *= 2;
+    // 64KW
+    sectorSize = 65536;
+    // 128DW = sdBuffer[512]
+    bufferSize = 128;
+    println_Msg(FS(ATTENTION_3_3V));
+    flashromType = 2;
+  } else if (flashid == 0x897E && flashids[0] == flashids[1]) {
+    idFlash16();
+    if (readWord_Flash(0xE) == 0x2228) {
+      println_Msg(F("MT28EW01G detected"));
+      // flashSize = 0x8000000;
+      flashSize = 0x2000000;
+    }
+    else if (readWord_Flash(0xE) == 0x2223) {
+      println_Msg(F("MT28EW512 detected"));
+      // flashSize = 0x4000000;
+      flashSize = 0x2000000;
+    }
+    else if (readWord_Flash(0xE) == 0x2222) {
+      println_Msg(F("MT28EW256 detected"));
+      flashSize = 0x2000000;
+    }
+    else if (readWord_Flash(0xE) == 0x2221) {
+      println_Msg(F("MT28EW128 detected"));
+      flashSize = 0x1000000;
+    }
+    flashSize *= 2;
+    // 64KW
+    sectorSize = 65536;
+    // 128DW = sdBuffer[512]
+    bufferSize = 128;
+    println_Msg(FS(ATTENTION_3_3V));
+    flashromType = 2;
+  } else {
+    // ID not found
+    flashSize = 0x4000000;
+    flashromType = 0;
+    display_Clear();
+    println_Msg(F("SIMM Writer 2x16bit"));
+    println_Msg("");
+    print_Msg(F("ID Type 1: "));
+    println_Msg(vendorID);
+    print_Msg(F("ID Type 2: "));
+    println_Msg(flashid_str);
+    println_Msg("");
+    println_Msg(F("UNKNOWN FLASHROM"));
+    println_Msg("");
+    // Prints string out of the common strings array either with or without newline
+    print_Error(press_button_STR);
+    display_Update();
+    wait();
+    // print first 40 bytes of flash
+    display_Clear();
+    println_Msg(F("First 40 bytes:"));
+    println_Msg(FS(FSTRING_EMPTY));
+    printFlash16(40);
+    resetSIMM4x8();
+  }
+  println_Msg(FS(FSTRING_EMPTY));
+  // Prints string out of the common strings array either with or without newline
+  print_STR(press_button_STR, 1);
+  display_Update();
+  resetSIMM4x8();
+}
+
+void writeSIMM2x16(unsigned long sectorSize, uint16_t bufferSize) {
+  if (openFlashFile()) {
+    // Set data pins to output
+    dataOut16();
+
+    //Initialize progress bar
+    uint32_t processedProgressBar = 0;
+    uint32_t totalProgressBar = (uint32_t)fileSize / 4;
+    draw_progressbar(processedProgressBar, totalProgressBar);
+
+    for (unsigned long currSector = 0; currSector < fileSize / 4; currSector += sectorSize) {
+      // Blink led
+      blinkLED();
+      // Write to flashrom
+      for (unsigned long currSdBuffer = 0; currSdBuffer < sectorSize; currSdBuffer += 128) {
+        // Fill SD buffer
+        myFile.read(sdBuffer, 512);
+        // Write bufferSize words at a time
+        for (int currWriteBuffer = 0; currWriteBuffer < 128; currWriteBuffer += bufferSize) {
+          noInterrupts();
+          // 2 unlock commands
+          enable64MSB();
+          writeWord_Flash(0x555, 0xaa);
+          writeWord_Flash(0x2aa, 0x55);
+          // Write buffer load command at sector address
+          writeWord_Flash(currSector + currSdBuffer + currWriteBuffer, 0x25);
+          // Write word count (minus 1) at sector address
+          writeWord_Flash(currSector + currSdBuffer + currWriteBuffer, bufferSize - 1);
+
+          // Load words into buffer
+          for (uint16_t currWord = 0; currWord < bufferSize; currWord++) {
+            word myWord = ((sdBuffer[((currWriteBuffer + currWord) * 4) + 1] & 0xFF) << 8) | (sdBuffer[((currWriteBuffer + currWord) * 4)] & 0xFF);
+            writeWord_Flash(currSector + currSdBuffer + currWriteBuffer + currWord, myWord);
+          }
+          // Write Buffer to Flash
+          writeWord_Flash(currSector + currSdBuffer + currWriteBuffer + bufferSize - 1, 0x29);
+          // Read the status register at last written address
+          dataIn16();
+          byte statusReg = readByte_Flash(currSector + currSdBuffer + currWriteBuffer + bufferSize - 1);
+          byte lastByte = sdBuffer[currWriteBuffer + (bufferSize * 4) - 4];
+          while ((statusReg & 0x80) != (lastByte & 0x80)) {
+            statusReg = readByte_Flash(currSector + currSdBuffer + currWriteBuffer + bufferSize - 1);
+          }
+          dataOut16();
+          enable64LSB();
+          writeWord_Flash(0x555, 0xaa);
+          writeWord_Flash(0x2aa, 0x55);
+          // Write buffer load command at sector address
+          writeWord_Flash(currSector + currSdBuffer + currWriteBuffer, 0x25);
+          // Write word count (minus 1) at sector address
+          writeWord_Flash(currSector + currSdBuffer + currWriteBuffer, bufferSize - 1);
+          // Load words into buffer
+          for (uint16_t currWord = 0; currWord < bufferSize; currWord++) {
+            word myWord = ((sdBuffer[((currWriteBuffer + currWord) * 4) + 3] & 0xFF) << 8) | (sdBuffer[((currWriteBuffer + currWord) * 4) + 2] & 0xFF);
+            writeWord_Flash(currSector + currSdBuffer + currWriteBuffer + currWord, myWord);
+          }
+          // Write Buffer to Flash
+          writeWord_Flash(currSector + currSdBuffer + currWriteBuffer + bufferSize - 1, 0x29);
+          // Read the status register at last written address
+          dataIn16();
+          statusReg = readByte_SIMM(currSector + currSdBuffer + currWriteBuffer + bufferSize - 1);
+          lastByte = sdBuffer[currWriteBuffer + (bufferSize * 4) - 2];
+          while ((statusReg & 0x80) != (lastByte & 0x80)) {
+            statusReg = readByte_SIMM(currSector + currSdBuffer + currWriteBuffer + bufferSize - 1);
+          }
+          interrupts();
+          // update progress bar
+          processedProgressBar += bufferSize;
+          draw_progressbar(processedProgressBar, totalProgressBar);
+          // Blink led
+          if (processedProgressBar % 2048 == 0)
+            blinkLED();
+          dataOut16();
+        }
+      }
+    }
+    // Set data pins to input again
+    dataIn16();
+    // Close the file:
+    myFile.close();
+  }
+}
+
+/******************************************
   SIMM 2x8bit flashrom functions
 *****************************************/
 
@@ -1512,13 +1946,11 @@ void idFlash2x8(uint32_t bank) {
 
   // Read the two id bytes into a string
   flashids[(bank * 2)] = (readWord_Flash((bank << 21) | 0) >> 8) << 8;
-  flashids[(bank * 2)] |= readWord_Flash((bank << 21) | 1) >> 8;
-  //sprintf(flashid_str, "%04X", flashid);
+  flashids[(bank * 2)] |= readWord_Flash((bank << 21) | 1) >> 8
 
   // Read the two id bytes into a string
   flashids[(bank * 2) + 1] = (readWord_Flash((bank << 21) | 0) & 0xFF) << 8;
   flashids[(bank * 2) + 1] |= readWord_Flash((bank << 21) | 1) & 0xFF;
-  //sprintf(flashid_str2, "%04X", flashid2);
 }
 
 // From eraseFlash29F032
@@ -1589,6 +2021,64 @@ int busyCheck2x8(uint32_t addr, word c) {
   NOP;
   NOP;
   return ret;
+}
+
+/******************************************
+  SIMM 16bit flashrom functions
+*****************************************/
+void idSIMM16() {
+  // Set data pins to output
+  dataOut16();
+
+  // ID command sequence
+  writeWordCommand_Flash(0x90);
+
+  // Set data pins to input again
+  dataIn16();
+
+  // Read the two id bytes into a string
+  flashid = (readWord_Flash(0) & 0xFF) << 8;
+  flashid |= readWord_Flash(1) & 0xFF;
+  sprintf(flashid_str, "%04X", flashid);
+}
+
+void resetSIMM16() {
+  switch (flashromType) {
+    case 1:
+      if (flashid == 0x04AD)
+        resetSIMM2x8();
+      break;
+    case 2:
+      if (flashid == 0x017E || flashid == 0x897E)
+        resetFlash16();
+      break;
+    case 3:
+      break;
+  }
+}
+
+/******************************************
+  SIMM 2x16bit flashrom functions
+*****************************************/
+void resetSIMM2x16() {
+  enable64MLSB();
+  switch (flashromType) {
+    case 1:
+      if (flashid == 0x04AD)
+         resetFlash2x8(0x0);
+      break;
+    case 2:
+      if (flashid == 0x017E || flashid == 0x897E)
+        resetFlash16();
+      break;
+    case 3:
+      break;
+  }
+}
+
+void eraseSIMM2x16() {
+  enable64MLSB();
+  eraseFlash16();
 }
 
 #endif
