@@ -1946,7 +1946,7 @@ void idFlash2x8(uint32_t bank) {
 
   // Read the two id bytes into a string
   flashids[(bank * 2)] = (readWord_Flash((bank << 21) | 0) >> 8) << 8;
-  flashids[(bank * 2)] |= readWord_Flash((bank << 21) | 1) >> 8
+  flashids[(bank * 2)] |= readWord_Flash((bank << 21) | 1) >> 8;
 
   // Read the two id bytes into a string
   flashids[(bank * 2) + 1] = (readWord_Flash((bank << 21) | 0) & 0xFF) << 8;
