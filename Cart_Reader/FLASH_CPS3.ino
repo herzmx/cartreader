@@ -579,6 +579,10 @@ void flashromCPS_SIMM2x16() {
    Setup
  *****************************************/
 void setup_CPS3() {
+  #if defined(ENABLE_VSELECT)
+    // Request 5V
+    setVoltage(VOLTS_SET_5V);
+  #endif
   // Set Address Pins to Output
   //A0-A7
   DDRF = 0xFF;
